@@ -1,0 +1,14 @@
+{
+  "name": "vendor_name/elsey-child",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "srmd",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {
+  }
+}
