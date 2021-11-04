@@ -99,22 +99,22 @@ function most_viewed_doctors_func()
                             }
                             ?></h3>
                         <!-- <p><?php echo $userCustomField['user_registration_textarea_1614152627'][0] ?></p> -->
-                        <?php 
+                        <?php
                         if(bestReview($user->ID)->comment)
                         {?>
-                        <p>
-                            <i> " <?php echo bestReview($user->ID)->comment; ?> " </i>
-                        
-                        </p>
-                        <span> -<?=bestReview($user->ID)->review_by;?> </span>
+                            <p>
+                                <i> " <?php echo bestReview($user->ID)->comment; ?> " </i>
+
+                            </p>
+                            <span> -<?=bestReview($user->ID)->review_by;?> </span>
                         <?php }?>
                         <div class="d-flex justify-content-center align-items-center mt-3">
-                                <a class="mr-2 themeclr" href="<?php echo esc_url(get_author_posts_url($user->ID)); ?>">Read More</a>
-                        <span class="rating"><i class="fa fa-star"></i><i class="fa fa-star"></i><i
-                                    class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> <small>(<small
-                                        class="totalRating"><?php echo round(totalReviews($user->ID)->averageRating, 2); ?></small>)</small></span>
+                            <a class="mr-2 themeclr" href="<?php echo esc_url(get_author_posts_url($user->ID)); ?>">Read More</a>
+                            <span class="rating"><i class="fa fa-star"></i><i class="fa fa-star"></i><i
+                                        class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> <small>(<small
+                                            class="totalRating"><?php echo round(totalReviews($user->ID)->averageRating, 2); ?></small>)</small></span>
                         </div>
-                        
+
                     </div>
                     <ul>
                         <!-- <li><i class="fa fa-eye"></i> 854 Views</li> -->
@@ -709,9 +709,8 @@ function new_review_notification($value, $column_name, $user_id)
 }
 
 //new filter
-function advancedSearch($userData, $userInput, &$advancedFilterUsers, &$suggestionsList, &$fullMatchedFlag)
+function advancedSearch($userData, $userInput, &$advancedFilterUsers, &$suggestionsList, &$fullMatchedFlag,&$locationBasedMatched,&$extra)
 {
-
     $meta = get_user_meta($userData->ID);
     $spacedString = explode(" ", $userInput);
     if (isset($_POST["Latitude"]) && $_POST["Longitude"]) {
@@ -723,7 +722,23 @@ function advancedSearch($userData, $userInput, &$advancedFilterUsers, &$suggesti
 
         if (isset($latitude2) && $latitude2 && isset($longitude2) && $longitude2) {
             if (distance($latitude1, $longitude1, $latitude2, $longitude2) <= 10 || !empty($_POST["languagepage-submit-review.php"])) {
+                if(!$extra)
+                {
+                    $advancedFilterUsers=[];
+                }
                 populateFilteredData($meta, $userData, $userInput, $advancedFilterUsers, $suggestionsList, $fullMatchedFlag);
+                $locationBasedMatched=true;
+                $extra=true;
+            }
+            else if($_POST["language"]&&!$locationBasedMatched)
+            {
+                if($extra)
+                {
+                    $advancedFilterUsers=[];
+                }
+                populateFilteredData($meta, $userData, $userInput, $advancedFilterUsers, $suggestionsList, $fullMatchedFlag);
+                $locationBasedMatched=false;
+                $extra=false;
             }
         }
     } else {
@@ -734,6 +749,7 @@ function advancedSearch($userData, $userInput, &$advancedFilterUsers, &$suggesti
 
         }
     }
+
     //get only unique suggestions
     $suggestionsList = array_unique($suggestionsList);
 
@@ -762,7 +778,6 @@ function isPresent($userData, $userId)
 //populate user data and suggestions list intelligently
 function populateFilteredData($meta, $userData, $userInput, &$advancedFilterUsers, &$suggestionsList, &$fullMatchedFlag)
 {
-
     if ($userInput) {
         $temp = null;
         $servicesArray = explode(",", $meta["user_registration_services_offered"][0]);
@@ -851,9 +866,16 @@ function populateFilteredData($meta, $userData, $userInput, &$advancedFilterUser
             $suggestionsList = [];
         }
     } else if (!empty($_POST["language"])) {
-        if (!empty($meta["user_registration_select_language"][0]) && fullMatch($meta["user_registration_select_language"][0], $_POST["language"])) {
-            $advancedFilterUsers[] = $userData;
+        $languageMatched=false;
+        $userLangs=(unserialize($meta["user_registration_select_language"][0]));
+        foreach($userLangs as $userlang)
+        {
+            if (!empty($meta["user_registration_select_language"][0]) && fullMatch($userlang, $_POST["language"]) && !$languageMatched) {
+                $languageMatched=true;
+                $advancedFilterUsers[] = $userData;
+            }
         }
+
     }
     if (empty($_POST["language"]) && empty($userInput)) {
         $advancedFilterUsers[] = $userData;

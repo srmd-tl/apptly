@@ -128,11 +128,11 @@ get_header(); ?>
                     <div class="_wrapper_searchInputs">
                         <div class="d-lg-flex _searchInputs">
                             <div class="autocomplete" style="flex: 1;">
-                                <input id="myInput" type="text" name="speciality" placeholder="Name / Specialty">
+                                <input id="myInput" type="text" name="speciality" placeholder="Name / Specialty" value="<?php echo $_POST['speciality']??null ?>">
                             </div>
                             <input type="text" name="location" id="location" class="form-control"
-                                   placeholder="City / Place / Postal Code">
-                                    <select name="language" id="">
+                                   placeholder="City / Place / Postal Code" value="<?php echo $_POST["location"]??null?>">
+                                    <select name="language" id="language">
                                         <option value="" selected="" disabled="">Select your language</option>
                                         <option value="English">English</option>
                                         <option value="Mandarin Chinese">Mandarin Chinese</option>
@@ -538,11 +538,13 @@ if (isset($_POST['quickSearch'])) {
                         );
                         $users = get_users($args);
                         $fullMatchedFlag=false;
+                        $locationBasedMatched=false;
+                        $extra=false;
                         foreach ($users as $user) {
                             $meta = get_user_meta($user->ID);
                             if (strpos($meta["wp_capabilities"][0], 'Doctors') !== false) {
 
-                                advancedSearch($user,$_POST["speciality"],$advancedFilterUsers,$suggestionsList,$fullMatchedFlag);
+                                advancedSearch($user,$_POST["speciality"],$advancedFilterUsers,$suggestionsList,$fullMatchedFlag,$locationBasedMatched,$extra);
                             }
                         }
                         //To show/hide suggestion list
@@ -848,5 +850,10 @@ if (isset($_POST['quickSearch'])) {
 
 
 <!-- Container End -->
-
+<script>
+    jQuery(function(){
+        const val ="<?php echo $_POST['language']??null?>";
+       jQuery("#language").val(val)
+    })
+</script>
 <?php get_footer();
